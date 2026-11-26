@@ -1,4 +1,4 @@
-name: Deploy FrameCheck to GitHub Pages
+name: Deploy FrameCheck static frontend to GitHub Pages
 on:
   push:
     branches: [main]
