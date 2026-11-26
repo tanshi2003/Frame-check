@@ -1,3 +1,4 @@
+const API_BASE="https://framecheck-kg19.onrender.com";
 const input=document.getElementById("fileInput");
 const dropzone=document.getElementById("dropzone");
 const browseBtn=document.getElementById("browseBtn");
@@ -34,7 +35,7 @@ analyseBtn.addEventListener("click",async()=>{
   document.getElementById("progressLabel").textContent="Extracting frames and reading visible text…";results.classList.add("hidden");
   const body=new FormData();body.append("video",chosenFile);
   try{
-    const response=await fetch("/api/analyse",{method:"POST",body});
+    const response=await fetch(`${API_BASE}/api/analyse`,{method:"POST",body});
     const data=await response.json();if(!response.ok)throw new Error(data.detail||"Analysis failed. Please try again.");
     renderReport(data);progressWrap.classList.add("hidden");results.classList.remove("hidden");statusText.textContent="Analysis complete.";
     results.scrollIntoView({behavior:"smooth",block:"start"});
