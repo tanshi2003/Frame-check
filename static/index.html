@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f7f4">
+  <meta name="description" content="Free video text review for motion and graphic designers. Find visible text, spelling and grammar issues with timestamps.">
+  <title>FrameCheck | Video text review, frame by frame</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav">
+      <a class="brand" href="/" aria-label="FrameCheck home"><span class="brand-mark">F<span>·</span></span><span>framecheck</span></a>
+      <div class="nav-right"><span class="free-pill"><i></i> FREE TOOL</span><a class="nav-link" href="#how">How it works</a><a class="github-link" href="https://github.com/tanshi2003/Frame-check" target="_blank" rel="noreferrer">GitHub ↗</a></div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow"><span class="eyebrow-line"></span> THE LAST LOOK BEFORE EXPORT</div>
+        <h1>Your video.<br><span>Every word, checked.</span></h1>
+        <p class="hero-copy">Catch spelling and grammar slips hiding in your motion graphics. FrameCheck scans your video, pulls out on-screen text, and gives every finding a timestamp.</p>
+        <div class="hero-meta"><span><b>01</b> Upload a video</span><span><b>02</b> Scan the frames</span><span><b>03</b> Fix with confidence</span></div>
+      </section>
+
+      <section class="workspace" aria-label="Video analysis workspace">
+        <div class="workspace-top"><div><span class="section-kicker">YOUR WORKSPACE</span><h2>Start a frame check</h2></div><span class="privacy"><span>◎</span> Temporary processing</span></div>
+        <div id="dropzone" class="dropzone" role="button" tabindex="0" aria-label="Choose a video or drag it here">
+          <input id="fileInput" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/x-msvideo,.m4v" hidden>
+          <div class="upload-icon"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 32V8m0 0-9 9m9-9 9 9M9 29v10h30V29" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>Drop your video here</h3>
+          <p>or <button id="browseBtn" class="text-button" type="button">browse files</button> from your device</p>
+          <div class="file-specs"><span>MP4</span><span>MOV</span><span>WEBM</span><span>MKV</span><span>AVI</span><span>UP TO 350 MB</span></div>
+        </div>
+        <div id="selectedFile" class="selected-file hidden">
+          <div class="file-symbol">MP4</div><div class="file-details"><strong id="fileName"></strong><span id="fileSize"></span></div><button id="removeFile" class="icon-button" aria-label="Remove selected video">×</button>
+        </div>
+        <div class="workspace-actions"><p id="statusText">No video selected yet.</p><button id="analyseBtn" class="primary-button" disabled>Analyse video <span>↗</span></button></div>
+        <div id="progressWrap" class="progress-wrap hidden"><div class="progress-copy"><span id="progressLabel">Preparing your video…</span><span class="pulse">● SCANNING</span></div><div class="progress-track"><div class="progress-bar"></div></div><p>Large videos can take a little longer. Keep this tab open.</p></div>
+      </section>
+
+      <section id="results" class="results hidden">
+        <div class="results-heading"><div><span class="section-kicker">SCAN REPORT</span><h2>Your review, frame by frame</h2></div><button id="newScanBtn" class="secondary-button">＋ New scan</button></div>
+        <div class="stats-grid">
+          <article class="stat-card"><span>FRAMES SCANNED</span><strong id="statFrames">0</strong><small>Sampled every 5 seconds</small></article>
+          <article class="stat-card"><span>FRAMES WITH TEXT</span><strong id="statText">0</strong><small>Visible copy detected</small></article>
+          <article class="stat-card"><span>WRITING SUGGESTIONS</span><strong id="statIssues">0</strong><small>Worth a second look</small></article>
+        </div>
+        <div class="report-grid">
+          <section class="report-panel"><div class="panel-heading"><div><span class="section-kicker">DETECTED COPY</span><h3>Text from your video</h3></div><button id="copyText" class="quiet-button">Copy text ↗</button></div><div id="combinedText" class="combined-text">No text detected.</div></section>
+          <section class="report-panel timeline-panel"><div class="panel-heading"><div><span class="section-kicker">TIMELINE</span><h3>Findings by timestamp</h3></div><span id="findingCount" class="count-badge">0 findings</span></div><div id="findingsList" class="findings-list"></div></section>
+        </div>
+        <p id="reportNotice" class="report-notice"></p>
+      </section>
+
+      <section id="how" class="how-section">
+        <div class="how-title"><span class="section-kicker">A SMALL TOOL FOR THE FINAL 2%</span><h2>Made for the details<br>that make the difference.</h2></div>
+        <div class="steps">
+          <article><span class="step-no">01 / EXTRACT</span><div class="step-icon">▧</div><h3>Frames, on a timeline</h3><p>FFmpeg samples your video at regular intervals, so you can jump straight to the moment that needs attention.</p></article>
+          <article><span class="step-no">02 / READ</span><div class="step-icon">⌕</div><h3>Every visible word</h3><p>Local OCR reads text in the frames. No paid AI key, account, or external text-recognition API needed.</p></article>
+          <article><span class="step-no">03 / REVIEW</span><div class="step-icon">✓</div><h3>Suggestions, not guesses</h3><p>Language checks flag possible spelling and grammar issues, with the original context beside each timestamp.</p></article>
+        </div>
+      </section>
+
+      <section class="disclaimer"><span>✳</span><p><strong>A note on accuracy.</strong> OCR can miss small, low-contrast, fast-moving or stylised text. Language suggestions are automated and may not understand brand names or creative phrasing. Always make the final call yourself.</p></section>
+    </main>
+    <footer><a class="brand footer-brand" href="/"><span class="brand-mark">F<span>·</span></span><span>framecheck</span></a><span>Made for thoughtful final checks. <span class="footer-dot">●</span> Free to use.</span><a href="https://github.com/tanshi2003/Frame-check" target="_blank" rel="noreferrer">Open source ↗</a></footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
