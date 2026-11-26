@@ -12,7 +12,7 @@ from typing import Any
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.staticfiles import StaticFiles\nfrom fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import pytesseract
 
@@ -23,7 +23,7 @@ MAX_DURATION_SECONDS = int(os.getenv("MAX_DURATION_SECONDS", "900"))
 MAX_FRAMES = int(os.getenv("MAX_FRAMES", "180"))
 ALLOWED_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}
 
-app = FastAPI(title="FrameCheck", version="1.0.1", description="Free timestamped video text review")
+app = FastAPI(title="FrameCheck", version="1.0.1", description="Free timestamped video text review")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=["https://tanshi2003.github.io"],\n    allow_methods=["GET", "POST"],\n    allow_headers=["*"],\n)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 if os.getenv("TESSERACT_CMD"):
