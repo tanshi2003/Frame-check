@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: framecheck
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: MAX_UPLOAD_MB
+        value: "350"
+      - key: MAX_DURATION_SECONDS
+        value: "900"
+      - key: MAX_FRAMES
+        value: "180"
