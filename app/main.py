@@ -105,21 +105,48 @@ def clean_text(raw: str) -> str:
     return re.sub(r"\s+", " ", raw).strip()
 
 
-def analyse_text(text: str, language_tool: Any | None) -> list[dict[str, str]]:
-    if not text.strip() or language_tool is None:
+def analyse_text(text: str) -> list[dict[str, str]]:
+    """Fast offline typo checks; deliberately avoids downloading heavyweight grammar engines."""
+    if not text.strip():
         return []
+    common_typos = {
+        "welcom": "welcome", "dont": "don't", "doesnt": "doesn't",
+        "didnt": "didn't", "cant": "can't", "wont": "won't",
+        "isnt": "isn't", "wouldnt": "wouldn't", "couldnt": "couldn't",
+        " " : " ", "teh": "the", "thier": "their", "wierd": "weird",
+        "recieve": "receive", "seperate": "separate", "definately": "definitely",
+        "becuase": "because", "occured": "occurred", "tommorow": "tomorrow",
+        "begining": "beginning", "untill": "until", "enviroment": "environment",
+        "goverment": "government", "succesful": "successful", "adress": "address",
+        "accomodate": "accommodate", "alot": "a lot",
+    }
     findings: list[dict[str, str]] = []
-    for match in language_tool.check(text):
-        if match.ruleId in {"WHITESPACE_RULE", "COMMA_PARENTHESIS_WHITESPACE"}:
-            continue
-        findings.append({
-            "category": "Grammar" if match.ruleId and ("GRAMMAR" in match.ruleId or "PUNCT" in match.ruleId) else "Spelling / style",
-            "message": match.message,
-            "suggestion": match.replacements[0] if match.replacements else "",
-            "context": match.context or "",
-            "offset": str(match.offset),
-            "length": str(match.errorLength),
-        })
+    for match in re.finditer(r"\\b[\\w']+\\b", text):
+        word = match.group(0)
+        suggestion = common_typos.get(word.lower())
+        if suggestion:
+            findings.append({
+                "category": "Spelling",
+                "message": f"Possible spelling mistake: {word}",
+                "suggestion": suggestion,
+                "context": text[max(0, match.start()-35):min(len(text), match.end()+35)],
+                "offset": str(match.start()),
+                "length": str(len(word)),
+            })
+    for pattern, suggestion, message in [
+        (r"\\byour design deserve\\b", "your design deserves", "Subject-verb agreement: 'design' is singular."),
+        (r"\\bevery frame matter\\b", "every frame matters", "Subject-verb agreement: 'frame' is singular."),
+    ]:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            findings.append({
+                "category": "Grammar",
+                "message": message,
+                "suggestion": suggestion,
+                "context": text[max(0, match.start()-35):min(len(text), match.end()+35)],
+                "offset": str(match.start()),
+                "length": str(match.end()-match.start()),
+            })
     return findings[:80]
 
 
@@ -171,53 +198,36 @@ async def analyse_video(video: UploadFile = File(...)) -> dict[str, Any]:
         if not shutil.which("tesseract") and not os.getenv("TESSERACT_CMD"):
             raise HTTPException(503, "Text recognition is unavailable because Tesseract is not installed.")
 
-        language_tool = None
-        language_check_available = False
-        try:
-            import language_tool_python
-            language_tool = language_tool_python.LanguageTool("en-US")
-            language_check_available = True
-        except Exception:
-            language_tool = None
+        language_check_available = True
 
         results: list[dict[str, Any]] = []
-        try:
-            for frame in frames:
-                try:
-                    with Image.open(frame["path"]) as image:
-                        image = image.convert("RGB")
-                        data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, config="--psm 11")
-                        words = [w.strip() for w in data["text"] if w and w.strip()]
-                        extracted = clean_text(" ".join(words))
-                        confidence_values = []
-                        for value in data.get("conf", []):
-                            try:
-                                score = float(value)
-                                if score >= 0:
-                                    confidence_values.append(score)
-                            except (TypeError, ValueError):
-                                continue
-                        confidence = round(sum(confidence_values) / len(confidence_values), 1) if confidence_values else 0
-                except Exception:
-                    extracted, confidence = "", 0
+        for frame in frames:
+            try:
+                with Image.open(frame["path"]) as image:
+                    image = image.convert("RGB")
+                    data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT, config="--psm 11")
+                    words = [w.strip() for w in data["text"] if w and w.strip()]
+                    extracted = clean_text(" ".join(words))
+                    confidence_values = []
+                    for value in data.get("conf", []):
+                        try:
+                            score = float(value)
+                            if score >= 0:
+                                confidence_values.append(score)
+                        except (TypeError, ValueError):
+                            continue
+                    confidence = round(sum(confidence_values) / len(confidence_values), 1) if confidence_values else 0
+            except Exception:
+                extracted, confidence = "", 0
 
-                try:
-                    findings = analyse_text(extracted, language_tool)
-                except Exception:
-                    findings = []
-                results.append({
-                    "timestamp": frame["timestamp"],
-                    "seconds": frame["seconds"],
-                    "text": extracted,
-                    "confidence": confidence,
-                    "findings": findings,
-                })
-        finally:
-            if language_tool is not None:
-                try:
-                    language_tool.close()
-                except Exception:
-                    pass
+            findings = analyse_text(extracted)
+            results.append({
+                "timestamp": frame["timestamp"],
+                "seconds": frame["seconds"],
+                "text": extracted,
+                "confidence": confidence,
+                "findings": findings,
+            })
 
         combined = clean_text(" ".join(dict.fromkeys(r["text"] for r in results if r["text"])))
         total_findings = sum(len(r["findings"]) for r in results)
