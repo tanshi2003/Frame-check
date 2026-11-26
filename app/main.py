@@ -121,7 +121,7 @@ def analyse_text(text: str) -> list[dict[str, str]]:
         "accomodate": "accommodate", "alot": "a lot",
     }
     findings: list[dict[str, str]] = []
-    for match in re.finditer(r"\\b[\\w']+\\b", text):
+    for match in re.finditer(r"\b[\w']+\b", text):
         word = match.group(0)
         suggestion = common_typos.get(word.lower())
         if suggestion:
@@ -134,8 +134,8 @@ def analyse_text(text: str) -> list[dict[str, str]]:
                 "length": str(len(word)),
             })
     for pattern, suggestion, message in [
-        (r"\\byour design deserve\\b", "your design deserves", "Subject-verb agreement: 'design' is singular."),
-        (r"\\bevery frame matter\\b", "every frame matters", "Subject-verb agreement: 'frame' is singular."),
+        (r"\byour design deserve\b", "your design deserves", "Subject-verb agreement: 'design' is singular."),
+        (r"\bevery frame matter\b", "every frame matters", "Subject-verb agreement: 'frame' is singular."),
     ]:
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if match:
