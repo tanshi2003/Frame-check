@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg tesseract-ocr tesseract-ocr-eng libgomp1 \
+    ffmpeg tesseract-ocr tesseract-ocr-eng libgomp1 default-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
