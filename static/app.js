@@ -48,8 +48,16 @@ function renderReport(data){
   document.getElementById("statIssues").textContent=data.summary.issues_found;
   document.getElementById("combinedText").textContent=data.combined_text||"No readable text was detected in the sampled frames.";
   document.getElementById("reportNotice").textContent=data.notice||"";
-  const all=[];data.frames.forEach(frame=>frame.findings.forEach(item=>all.push({...item,timestamp:frame.timestamp,seconds:frame.seconds})));
-  document.getElementById("findingCount").textContent=all.length+" finding"+(all.length===1?"":"s");
+  const grouped=new Map();
+  data.frames.forEach(frame=>frame.findings.forEach(item=>{
+    const key=[item.category,item.message,item.suggestion].map(v=>(v||"").toLowerCase().trim()).join("|");
+    if(!grouped.has(key))grouped.set(key,{...item,timestamps:[],contexts:[]});
+    const group=grouped.get(key);
+    if(!group.timestamps.includes(frame.timestamp))group.timestamps.push(frame.timestamp);
+    if(item.context&&!group.contexts.includes(item.context))group.contexts.push(item.context);
+  }));
+  const all=[...grouped.values()];
+  document.getElementById("findingCount").textContent=all.length+" unique finding"+(all.length===1?"":"s");
   const list=document.getElementById("findingsList");list.replaceChildren();
   if(!all.length){
     const empty=document.createElement("div");empty.className="empty-findings";
@@ -58,10 +66,10 @@ function renderReport(data){
   }
   all.forEach(item=>{
     const card=document.createElement("article");card.className="finding";const top=document.createElement("div");top.className="finding-top";
-    const time=document.createElement("span");time.className="timestamp-button";time.textContent=item.timestamp;time.title="Timestamp in original video";
+    const time=document.createElement("span");time.className="timestamp-button";time.textContent=item.timestamps.join(" · ");time.title="Times this issue appears in the original video";
     const kind=document.createElement("span");kind.className="finding-kind";kind.textContent=item.category;top.append(time,kind);
     const message=document.createElement("p");message.className="finding-message";message.textContent=item.message;
-    const context=document.createElement("div");context.className="finding-context";context.textContent=item.context;card.append(top,message,context);
+    const context=document.createElement("div");context.className="finding-context";context.textContent=item.contexts[0]||item.context||"";card.append(top,message,context);
     if(item.suggestion){const suggestion=document.createElement("div");suggestion.className="suggestion";suggestion.textContent="Suggested: "+item.suggestion;card.append(suggestion);}
     list.append(card);
   });
