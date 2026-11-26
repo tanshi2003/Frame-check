@@ -229,8 +229,23 @@ async def analyse_video(video: UploadFile = File(...)) -> dict[str, Any]:
                 "findings": findings,
             })
 
-        combined = clean_text(" ".join(dict.fromkeys(r["text"] for r in results if r["text"])))
-        total_findings = sum(len(r["findings"]) for r in results)
+        # Merge repeated OCR copy across sampled frames without losing unique phrases.
+        copy_fragments: list[str] = []
+        seen_copy: set[str] = set()
+        for frame_result in results:
+            for fragment in re.split(r"(?<=[.!?])\\s+|\\s{2,}", frame_result["text"]):
+                fragment = clean_text(fragment)
+                normalized = re.sub(r"[^a-z0-9]+", " ", fragment.lower()).strip()
+                if fragment and normalized and normalized not in seen_copy:
+                    seen_copy.add(normalized)
+                    copy_fragments.append(fragment)
+        combined = clean_text(" ".join(copy_fragments))
+        # Count distinct issue types, not every frame where the same issue reappears.
+        unique_issue_keys = {
+            (item["category"].lower(), item["message"].lower(), item["suggestion"].lower())
+            for frame_result in results for item in frame_result["findings"]
+        }
+        total_findings = len(unique_issue_keys)
         return {
             "job_id": str(uuid.uuid4()),
             "filename": Path(filename).name,
