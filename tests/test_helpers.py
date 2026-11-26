@@ -6,4 +6,4 @@ def test_timestamp_formats_hours_minutes_seconds():
 
 
 def test_clean_text_collapses_whitespace():
-    assert clean_text("Hello  \\n world") == "Hello world"
+    assert clean_text("Hello  \n world") == "Hello world"
