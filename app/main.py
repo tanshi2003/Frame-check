@@ -24,7 +24,13 @@ MAX_DURATION_SECONDS = int(os.getenv("MAX_DURATION_SECONDS", "900"))
 MAX_FRAMES = int(os.getenv("MAX_FRAMES", "180"))
 ALLOWED_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}
 
-app = FastAPI(title="FrameCheck", version="1.0.1", description="Free timestamped video text review")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=["https://tanshi2003.github.io"],\n    allow_methods=["GET", "POST"],\n    allow_headers=["*"],\n)
+app = FastAPI(title="FrameCheck", version="1.0.1", description="Free timestamped video text review")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://tanshi2003.github.io"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 if os.getenv("TESSERACT_CMD"):
